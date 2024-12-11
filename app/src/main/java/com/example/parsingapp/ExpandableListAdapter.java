@@ -4,25 +4,30 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.webkit.WebView;
 import android.widget.TextView;
 import android.widget.BaseExpandableListAdapter;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 public class ExpandableListAdapter extends BaseExpandableListAdapter {
 
-    private final Context context;
-    private final List<String> titles;
-    private final Map<String, String> contentMap;
+    private Context context;
+    private List<String> titles;
+    private Map<String, String> contentMap;
 
-    public ExpandableListAdapter(Context context, List<String> titles, Map<String, String> contentMap) {
+    public ExpandableListAdapter(Context context, List<String> rawData) {
         this.context = context;
-        this.titles = titles;
-        this.contentMap = contentMap;
-    }
 
+        this.contentMap = new LinkedHashMap<>();
+        for (String content : rawData) {
+            contentMap.put(content, content);
+        }
+
+        this.titles = new ArrayList<>(contentMap.keySet());
+    }
 
     @Override
     public int getGroupCount() {
@@ -31,7 +36,7 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
 
     @Override
     public int getChildrenCount(int groupPosition) {
-        return 1; // Один элемент для каждого заголовка
+        return 1; // Один дочерний элемент на группу
     }
 
     @Override
@@ -56,34 +61,30 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
 
     @Override
     public boolean hasStableIds() {
-        return true;
+        return false;
     }
 
     @Override
     public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
-        String title = getGroup(groupPosition).toString(); // Здесь получаем главный заголовок
+        String title = (String) getGroup(groupPosition);
         if (convertView == null) {
             convertView = LayoutInflater.from(context).inflate(android.R.layout.simple_expandable_list_item_1, parent, false);
         }
         TextView textView = convertView.findViewById(android.R.id.text1);
-        textView.setText(title);
+        textView.setText(title + "\n----------------------------------"); // Добавляем разделитель
         return convertView;
     }
-
 
     @Override
     public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
         String content = (String) getChild(groupPosition, childPosition);
         if (convertView == null) {
-            convertView = LayoutInflater.from(context).inflate(R.layout.list_item_content, parent, false);
+            convertView = LayoutInflater.from(context).inflate(android.R.layout.simple_expandable_list_item_2, parent, false);
         }
-        WebView webView = convertView.findViewById(R.id.webView);
-        webView.loadDataWithBaseURL(null, "<html><body>" + content + "</body></html>", "text/html", "utf-8", null);
+        TextView textView = convertView.findViewById(android.R.id.text2);
+        textView.setText(content + "\n----------------------------------"); // Добавляем разделитель
         return convertView;
-
     }
-
-
 
     @Override
     public boolean isChildSelectable(int groupPosition, int childPosition) {
